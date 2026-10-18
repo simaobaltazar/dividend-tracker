@@ -1,17 +1,20 @@
 package pt.simaobaltazar.dividendtracker.service;
 
 import org.springframework.stereotype.Service;
+import pt.simaobaltazar.dividendtracker.dto.TransactionInput;
 import pt.simaobaltazar.dividendtracker.model.Transaction;
 import pt.simaobaltazar.dividendtracker.model.TransactionType;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class TransactionService {
 
-    private final List<Transaction> transactions = List.of(
+    private final List<Transaction> transactions = new ArrayList<>(List.of(
             new Transaction(1L, TransactionType.BUY, new BigDecimal("10"),
                     new BigDecimal("172.50"), LocalDate.of(2026, 1, 15), "AAPL"),
             new Transaction(2L, TransactionType.BUY, new BigDecimal("200"),
@@ -20,9 +23,28 @@ public class TransactionService {
                     new BigDecimal("118.20"), LocalDate.of(2026, 3, 10), "VWCE"),
             new Transaction(4L, TransactionType.SELL, new BigDecimal("4"),
                     new BigDecimal("190.10"), LocalDate.of(2026, 6, 20), "AAPL")
-    );
+    ));
 
     public List<Transaction> findAll() {
         return transactions;
+    }
+
+    private final AtomicLong idGenerator = new AtomicLong(4);
+
+    public Transaction add(TransactionInput input) {
+        Transaction transaction = new Transaction(
+                idGenerator.incrementAndGet(),
+                input.type(),
+                input.quantity(),
+                input.price(),
+                input.date(),
+                input.assetTicker()
+        );
+        transactions.add(transaction);
+        return transaction;
+    }
+
+    public boolean delete(Long id) {
+        return transactions.removeIf(t -> t.id().equals(id));
     }
 }

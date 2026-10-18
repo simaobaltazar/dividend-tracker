@@ -15,3 +15,16 @@ type Transaction {
 extend type Query {
     transactions: [Transaction!]!
 }
+
+input TransactionInput {
+    type: TransactionType!
+    quantity: BigDecimal!
+    price: BigDecimal!
+    date: Date!
+    assetTicker: String!
+}
+
+extend type Mutation {
+    addTransaction(newTransaction:TransactionInput!): Transaction!
+    deleteTransaction(id : ID!): Boolean!
+}

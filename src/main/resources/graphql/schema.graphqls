@@ -2,3 +2,4 @@ scalar BigDecimal
 scalar Date
 
 type Query
+type Mutation
