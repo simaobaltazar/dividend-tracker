@@ -1,0 +1,17 @@
+enum TransactionType {
+    BUY
+    SELL
+}
+
+type Transaction {
+    id: ID!
+    type: TransactionType!
+    quantity: BigDecimal!
+    price: BigDecimal!
+    date: Date!
+    asset: Asset!
+}
+
+extend type Query {
+    transactions: [Transaction!]!
+}

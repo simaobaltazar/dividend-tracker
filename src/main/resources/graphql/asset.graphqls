@@ -1,0 +1,11 @@
+type Asset {
+    ticker: ID!
+    companyName: String!
+    sector: String
+    country: String!
+}
+
+extend type Query {
+    assets: [Asset!]!
+    asset(ticker: ID!): Asset
+}

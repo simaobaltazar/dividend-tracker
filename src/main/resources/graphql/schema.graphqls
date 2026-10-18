@@ -1,11 +1,4 @@
-type Asset {
-    ticker: ID!
-    companyName: String!
-    sector: String
-    country: String!
-}
+scalar BigDecimal
+scalar Date
 
-type Query {
-    assets: [Asset!]!
-    asset(ticker: ID!): Asset
-}
+type Query
