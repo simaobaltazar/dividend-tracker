@@ -1,0 +1,10 @@
+type Holding {
+    asset: Asset!
+    quantity: BigDecimal!
+    averagePrice: BigDecimal!
+    realizedProfit: BigDecimal!
+}
+
+extend type Query {
+    portfolio: [Holding!]!
+}
