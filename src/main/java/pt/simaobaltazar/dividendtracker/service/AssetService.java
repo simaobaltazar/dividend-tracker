@@ -2,6 +2,7 @@ package pt.simaobaltazar.dividendtracker.service;
 
 import org.springframework.stereotype.Service;
 import pt.simaobaltazar.dividendtracker.model.Asset;
+import pt.simaobaltazar.dividendtracker.service.exceptions.ResourceNotFoundException;
 
 import java.util.List;
 
@@ -18,7 +19,9 @@ public class AssetService {
     }
 
     public Asset findByTicker(String ticker) {
-        return assets.stream().filter(a -> a.ticker().equals(ticker))
-                .findFirst().orElse(null);
+        return assets.stream()
+                .filter(a -> a.ticker().equals(ticker))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException(ticker));
     }
 }

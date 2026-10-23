@@ -4,10 +4,12 @@ import org.springframework.stereotype.Service;
 import pt.simaobaltazar.dividendtracker.dto.TransactionInput;
 import pt.simaobaltazar.dividendtracker.model.Transaction;
 import pt.simaobaltazar.dividendtracker.model.TransactionType;
+import pt.simaobaltazar.dividendtracker.service.exceptions.InvalidRequestException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -25,13 +27,44 @@ public class TransactionService {
                     new BigDecimal("190.10"), LocalDate.of(2026, 6, 20), "AAPL")
     ));
 
+    private final AtomicLong idGenerator = new AtomicLong(4);
+
+    private final AssetService assetService;
+
+    public TransactionService(AssetService assetService) {
+        this.assetService = assetService;
+    }
+
     public List<Transaction> findAll() {
         return transactions;
     }
 
-    private final AtomicLong idGenerator = new AtomicLong(4);
-
     public Transaction add(TransactionInput input) {
+        assetService.findByTicker(input.assetTicker());
+
+        if (input.quantity().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidRequestException("Quantity must be positive");
+        }
+        if (input.price().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidRequestException("Price must be positive");
+        }
+
+        LocalDate lastDate = transactions.stream()
+                .filter(t -> t.assetTicker().equals(input.assetTicker()))
+                .map(Transaction::date)
+                .max(Comparator.naturalOrder())
+                .orElse(LocalDate.MIN);
+
+        if (input.date().isBefore(lastDate)) {
+            throw new InvalidRequestException(
+                    "Transaction date cannot be before the last transaction of this asset");
+        }
+
+        if (input.type() == TransactionType.SELL
+                && input.quantity().compareTo(quantityHeld(input.assetTicker())) > 0) {
+            throw new InvalidRequestException("Not enough shares to sell");
+        }
+
         Transaction transaction = new Transaction(
                 idGenerator.incrementAndGet(),
                 input.type(),
@@ -46,5 +79,22 @@ public class TransactionService {
 
     public boolean delete(Long id) {
         return transactions.removeIf(t -> t.id().equals(id));
+    }
+
+    private BigDecimal quantityHeld(String ticker) {
+        BigDecimal quantity = BigDecimal.ZERO;
+
+        for (Transaction t : transactions) {
+            if (!t.assetTicker().equals(ticker)) {
+                continue;
+            }
+            if (t.type() == TransactionType.BUY) {
+                quantity = quantity.add(t.quantity());
+            } else {
+                quantity = quantity.subtract(t.quantity());
+            }
+        }
+
+        return quantity;
     }
 }
