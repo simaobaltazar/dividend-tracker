@@ -21,15 +21,17 @@ public class PortfolioService {
         this.transactionService = transactionService;
     }
 
-    public List<Holding> portfolio(){
-        Map<String,List<Transaction>> byTicker = transactionService.findAll().stream()
+    public List<Holding> portfolio() {
+        Map<String, List<Transaction>> byTicker = transactionService.findAll().stream()
                 .collect(Collectors.groupingBy(t -> t.assetTicker()));
 
-        return byTicker.entrySet().stream().map(entry ->
-                calculateHolding(entry.getKey(),entry.getValue())).toList();
+        return byTicker.entrySet().stream()
+                .map(entry -> calculateHolding(entry.getKey(), entry.getValue()))
+                .filter(holding -> holding.quantity().compareTo(BigDecimal.ZERO) > 0)
+                .toList();
     }
 
-    private Holding calculateHolding(String ticker,List<Transaction> transactions) {
+    private Holding calculateHolding(String ticker, List<Transaction> transactions) {
 
         BigDecimal quantity = BigDecimal.ZERO;
         BigDecimal totalCost = BigDecimal.ZERO;
@@ -59,7 +61,6 @@ public class PortfolioService {
             finalAveragePrice = totalCost.divide(quantity, 4, RoundingMode.HALF_UP);
         }
 
-        // ── devolver a posição ───────────────────────────────────
-        return new Holding(ticker, quantity,finalAveragePrice, realizedProfit);
+        return new Holding(ticker, quantity, finalAveragePrice, realizedProfit);
     }
 }

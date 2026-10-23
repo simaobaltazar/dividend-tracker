@@ -22,12 +22,12 @@ public class PortfolioController {
     }
 
     @QueryMapping
-    public List<Holding> portfolio(){
+    public List<Holding> portfolio() {
         return portfolioService.portfolio();
     }
 
     @SchemaMapping
-    public Asset asset(Holding holding){
+    public Asset asset(Holding holding) {
         return assetService.findByTicker(holding.assetTicker());
     }
 }
