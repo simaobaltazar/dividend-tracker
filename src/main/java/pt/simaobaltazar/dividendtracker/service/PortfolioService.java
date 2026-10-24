@@ -25,9 +25,17 @@ public class PortfolioService {
         Map<String, List<Transaction>> byTicker = transactionService.findAll().stream()
                 .collect(Collectors.groupingBy(t -> t.assetTicker()));
 
-        return byTicker.entrySet().stream()
+        List<Holding> holdings = byTicker.entrySet().stream()
                 .map(entry -> calculateHolding(entry.getKey(), entry.getValue()))
                 .filter(holding -> holding.quantity().compareTo(BigDecimal.ZERO) > 0)
+                .toList();
+
+        BigDecimal total = holdings.stream()
+                .map(this::costOf)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return holdings.stream()
+                .map(h -> withWeight(h, total))
                 .toList();
     }
 
@@ -61,6 +69,16 @@ public class PortfolioService {
             finalAveragePrice = totalCost.divide(quantity, 4, RoundingMode.HALF_UP);
         }
 
-        return new Holding(ticker, quantity, finalAveragePrice, realizedProfit);
+        return new Holding(ticker, quantity, finalAveragePrice, realizedProfit, BigDecimal.ZERO);
+    }
+
+    private BigDecimal costOf(Holding h) {
+        return h.quantity().multiply(h.averagePrice());
+    }
+
+    private Holding withWeight(Holding h, BigDecimal total) {
+        BigDecimal weight = costOf(h).multiply(BigDecimal.valueOf(100)).divide(total, 2, RoundingMode.HALF_UP);
+        return new Holding(h.assetTicker(), h.quantity(), h.averagePrice(),
+                h.realizedProfit(), weight);
     }
 }

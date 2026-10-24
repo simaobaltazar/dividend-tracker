@@ -3,6 +3,7 @@ type Holding {
     quantity: BigDecimal!
     averagePrice: BigDecimal!
     realizedProfit: BigDecimal!
+    weight: BigDecimal!
 }
 
 extend type Query {
