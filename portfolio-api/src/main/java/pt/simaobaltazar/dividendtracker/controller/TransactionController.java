@@ -5,14 +5,13 @@ import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.stereotype.Controller;
+
 import pt.simaobaltazar.dividendtracker.dto.TransactionInput;
 import pt.simaobaltazar.dividendtracker.model.Asset;
 import pt.simaobaltazar.dividendtracker.model.Transaction;
 import pt.simaobaltazar.dividendtracker.model.TransactionPage;
 import pt.simaobaltazar.dividendtracker.service.AssetService;
 import pt.simaobaltazar.dividendtracker.service.TransactionService;
-
-import java.util.List;
 
 @Controller
 public class TransactionController {
