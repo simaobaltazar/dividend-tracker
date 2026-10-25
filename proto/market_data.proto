@@ -1,0 +1,18 @@
+syntax = "proto3";
+package marketdata;
+
+service MarketDataService {
+  rpc GetQuote (QuoteRequest) returns (QuoteResponse);
+}
+
+message QuoteRequest {
+  string ticker = 1;
+}
+
+message QuoteResponse {
+  string ticker = 1;
+  string price = 2;
+  string currency = 3;
+  string annual_dividend = 4;
+  int32 payments_per_year = 5;
+}
