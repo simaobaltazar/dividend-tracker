@@ -3,6 +3,7 @@ package pt.simaobaltazar.dividendtracker.service;
 import org.springframework.stereotype.Service;
 import pt.simaobaltazar.dividendtracker.dto.TransactionInput;
 import pt.simaobaltazar.dividendtracker.model.Transaction;
+import pt.simaobaltazar.dividendtracker.model.TransactionPage;
 import pt.simaobaltazar.dividendtracker.model.TransactionType;
 import pt.simaobaltazar.dividendtracker.service.exceptions.InvalidRequestException;
 
@@ -75,6 +76,24 @@ public class TransactionService {
         );
         transactions.add(transaction);
         return transaction;
+    }
+
+    public TransactionPage findPage(int page, int size) {
+
+        if (page < 0) {
+            throw new InvalidRequestException("Page must be zero or positive");
+        }
+        if (size < 1) {
+            throw new InvalidRequestException("Size must be positive");
+        }
+
+        List<Transaction> content = transactions.stream().sorted(Comparator
+                .comparing(Transaction::date).reversed()).skip((long) page * size).limit(size).toList();
+
+        int totalElements = transactions.size();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+
+        return new TransactionPage(content, page, size, totalElements, totalPages);
     }
 
     public boolean delete(Long id) {

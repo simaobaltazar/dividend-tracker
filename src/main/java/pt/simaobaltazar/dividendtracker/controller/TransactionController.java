@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import pt.simaobaltazar.dividendtracker.dto.TransactionInput;
 import pt.simaobaltazar.dividendtracker.model.Asset;
 import pt.simaobaltazar.dividendtracker.model.Transaction;
+import pt.simaobaltazar.dividendtracker.model.TransactionPage;
 import pt.simaobaltazar.dividendtracker.service.AssetService;
 import pt.simaobaltazar.dividendtracker.service.TransactionService;
 
@@ -25,8 +26,8 @@ public class TransactionController {
     }
 
     @QueryMapping
-    public List<Transaction> transactions() {
-        return transactionService.findAll();
+    public TransactionPage transactions(@Argument int page, @Argument int size) {
+        return transactionService.findPage(page, size);
     }
 
     @SchemaMapping

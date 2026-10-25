@@ -13,7 +13,15 @@ type Transaction {
 }
 
 extend type Query {
-    transactions: [Transaction!]!
+    transactions(page:Int = 0, size:Int = 10):TransactionPage!
+}
+
+type TransactionPage {
+    content: [Transaction!]!
+    page: Int!
+    size: Int!
+    totalElements: Int!
+    totalPages: Int!
 }
 
 input TransactionInput {
