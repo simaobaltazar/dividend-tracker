@@ -1,0 +1,11 @@
+type Quote {
+    ticker: ID!
+    price: BigDecimal!
+    currency: String!
+    annualDividend: BigDecimal!
+    paymentsPerYear: Int!
+}
+
+extend type Query {
+    quote(ticker: ID!): Quote!
+}
