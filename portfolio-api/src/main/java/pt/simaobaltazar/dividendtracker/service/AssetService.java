@@ -12,7 +12,7 @@ public class AssetService {
     private final List<Asset> assets = List.of(
             new Asset("AAPL", "Apple Inc.", "Technology", "US"),
             new Asset("EDP.LS", "EDP - Energias de Portugal", "Utilities", "PT"),
-            new Asset("VWCE", "Vanguard FTSE All-World ETF", null, "IE"));
+            new Asset("VWCE.DE", "Vanguard FTSE All-World ETF", null, "IE"));
 
     public List<Asset> findAll() {
         return assets;

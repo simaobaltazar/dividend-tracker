@@ -23,7 +23,7 @@ public class TransactionService {
             new Transaction(2L, TransactionType.BUY, new BigDecimal("200"),
                     new BigDecimal("3.85"), LocalDate.of(2026, 2, 3), "EDP.LS"),
             new Transaction(3L, TransactionType.BUY, new BigDecimal("2.5"),
-                    new BigDecimal("118.20"), LocalDate.of(2026, 3, 10), "VWCE"),
+                    new BigDecimal("118.20"), LocalDate.of(2026, 3, 10), "VWCE.DE"),
             new Transaction(4L, TransactionType.SELL, new BigDecimal("4"),
                     new BigDecimal("190.10"), LocalDate.of(2026, 6, 20), "AAPL")
     ));

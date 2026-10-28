@@ -1,21 +1,21 @@
 const grpc = require('@grpc/grpc-js');
 const loader = require('@grpc/proto-loader');
 const path = require('node:path');
+const { getQuote } = require('./quotes');
 
 const def = loader.loadSync(path.join(__dirname, '../../proto/market_data.proto'), {
   keepCase: true, longs: String, defaults: true, oneofs: true
 });
 const api = grpc.loadPackageDefinition(def).marketdata;
 
-function GetQuote(call, cb) {
-  const quotes = {
-    'AAPL':   { ticker: 'AAPL',   price: '190.10', currency: 'USD', annual_dividend: '1.04', payments_per_year: 4 },
-    'EDP.LS': { ticker: 'EDP.LS', price: '3.95',   currency: 'EUR', annual_dividend: '0.20', payments_per_year: 1 },
-    'VWCE':   { ticker: 'VWCE',   price: '125.40', currency: 'EUR', annual_dividend: '0',    payments_per_year: 0 }
-  };
-  const quote = quotes[call.request.ticker];
-  if (!quote) return cb({ code: grpc.status.NOT_FOUND, message: 'Ticker não encontrado.' });
-  cb(null, quote);
+async function GetQuote(call, cb) {
+  try {
+    const quote = await getQuote(call.request.ticker);
+    if (!quote) return cb({ code: grpc.status.NOT_FOUND, message: 'Ticker não encontrado.' });
+    cb(null, quote);
+  } catch (err) {
+    cb({ code: grpc.status.UNAVAILABLE, message: 'Não foi possível obter a cotação.' });
+  }
 }
 
 const server = new grpc.Server();
