@@ -1,0 +1,19 @@
+type DividendForecast {
+    asset: Asset!
+    currency: String!
+    annualGross: BigDecimal!
+    paymentsPerYear: Int!
+    grossPerPayment: BigDecimal!
+    tax: BigDecimal!
+    annualNet: BigDecimal!
+}
+
+type DividendSummary {
+    forecasts: [DividendForecast!]!
+    totalGrossEur: BigDecimal!
+    totalNetEur: BigDecimal!
+}
+
+extend type Query {
+    dividendForecast: DividendSummary!
+}
