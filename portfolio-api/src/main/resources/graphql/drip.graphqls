@@ -1,0 +1,13 @@
+type DripYear {
+    year: Int!
+    grossDividend: BigDecimal!
+    tax: BigDecimal!
+    netDividend: BigDecimal!
+    sharesBought: BigDecimal!
+    shares: BigDecimal!
+    positionValue: BigDecimal!
+}
+
+extend type Query {
+    dripSimulation(ticker: ID!, years: Int!): [DripYear!]!
+}

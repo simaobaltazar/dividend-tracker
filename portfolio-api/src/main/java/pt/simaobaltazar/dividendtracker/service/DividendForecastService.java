@@ -12,7 +12,7 @@ import java.util.List;
 
 @Service
 public class DividendForecastService {
-    private static final BigDecimal TAX_RATE = new BigDecimal("0.28");
+    public static final BigDecimal TAX_RATE = new BigDecimal("0.28");
 
     private final PortfolioService portfolioService;
     private final MarketDataClient marketDataClient;
