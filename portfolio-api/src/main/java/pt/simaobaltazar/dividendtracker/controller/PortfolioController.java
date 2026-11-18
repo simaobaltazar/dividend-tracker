@@ -28,6 +28,6 @@ public class PortfolioController {
 
     @SchemaMapping
     public Asset asset(Holding holding) {
-        return assetService.findByTicker(holding.assetTicker());
+        return assetService.findByTicker(holding.getAssetTicker());
     }
 }

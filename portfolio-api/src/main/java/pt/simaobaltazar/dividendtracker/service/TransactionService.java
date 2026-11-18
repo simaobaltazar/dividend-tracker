@@ -41,38 +41,38 @@ public class TransactionService {
     }
 
     public Transaction add(TransactionInput input) {
-        assetService.findByTicker(input.assetTicker());
+        assetService.findByTicker(input.getAssetTicker());
 
-        if (input.quantity().compareTo(BigDecimal.ZERO) <= 0) {
+        if (input.getQuantity().compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidRequestException("Quantity must be positive");
         }
-        if (input.price().compareTo(BigDecimal.ZERO) <= 0) {
+        if (input.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidRequestException("Price must be positive");
         }
 
         LocalDate lastDate = transactions.stream()
-                .filter(t -> t.assetTicker().equals(input.assetTicker()))
-                .map(Transaction::date)
+                .filter(t -> t.getAssetTicker().equals(input.getAssetTicker()))
+                .map(Transaction::getDate)
                 .max(Comparator.naturalOrder())
                 .orElse(LocalDate.MIN);
 
-        if (input.date().isBefore(lastDate)) {
+        if (input.getDate().isBefore(lastDate)) {
             throw new InvalidRequestException(
                     "Transaction date cannot be before the last transaction of this asset");
         }
 
-        if (input.type() == TransactionType.SELL
-                && input.quantity().compareTo(quantityHeld(input.assetTicker())) > 0) {
+        if (input.getType() == TransactionType.SELL
+                && input.getQuantity().compareTo(quantityHeld(input.getAssetTicker())) > 0) {
             throw new InvalidRequestException("Not enough shares to sell");
         }
 
         Transaction transaction = new Transaction(
                 idGenerator.incrementAndGet(),
-                input.type(),
-                input.quantity(),
-                input.price(),
-                input.date(),
-                input.assetTicker()
+                input.getType(),
+                input.getQuantity(),
+                input.getPrice(),
+                input.getDate(),
+                input.getAssetTicker()
         );
         transactions.add(transaction);
         return transaction;
@@ -88,7 +88,7 @@ public class TransactionService {
         }
 
         List<Transaction> content = transactions.stream().sorted(Comparator
-                .comparing(Transaction::date).reversed()).skip((long) page * size).limit(size).toList();
+                .comparing(Transaction::getDate).reversed()).skip((long) page * size).limit(size).toList();
 
         int totalElements = transactions.size();
         int totalPages = (int) Math.ceil((double) totalElements / size);
@@ -97,20 +97,20 @@ public class TransactionService {
     }
 
     public boolean delete(Long id) {
-        return transactions.removeIf(t -> t.id().equals(id));
+        return transactions.removeIf(t -> t.getId().equals(id));
     }
 
     private BigDecimal quantityHeld(String ticker) {
         BigDecimal quantity = BigDecimal.ZERO;
 
         for (Transaction t : transactions) {
-            if (!t.assetTicker().equals(ticker)) {
+            if (!t.getAssetTicker().equals(ticker)) {
                 continue;
             }
-            if (t.type() == TransactionType.BUY) {
-                quantity = quantity.add(t.quantity());
+            if (t.getType() == TransactionType.BUY) {
+                quantity = quantity.add(t.getQuantity());
             } else {
-                quantity = quantity.subtract(t.quantity());
+                quantity = quantity.subtract(t.getQuantity());
             }
         }
 

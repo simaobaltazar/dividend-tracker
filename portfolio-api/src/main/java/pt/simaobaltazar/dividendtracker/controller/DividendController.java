@@ -26,6 +26,6 @@ public class DividendController {
 
     @SchemaMapping
     public Asset asset(DividendForecast forecast) {
-        return assetService.findByTicker(forecast.assetTicker());
+        return assetService.findByTicker(forecast.getAssetTicker());
     }
 }

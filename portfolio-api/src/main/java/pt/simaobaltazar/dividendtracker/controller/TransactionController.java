@@ -31,7 +31,7 @@ public class TransactionController {
 
     @SchemaMapping
     public Asset asset(Transaction transaction) {
-        return assetService.findByTicker(transaction.assetTicker());
+        return assetService.findByTicker(transaction.getAssetTicker());
     }
 
     @MutationMapping

@@ -28,41 +28,41 @@ public class DividendForecastService {
                 .toList();
 
         BigDecimal totalGrossEur = forecasts.stream()
-                .map(f -> toEur(f.annualGross(), f.currency()))
+                .map(f -> toEur(f.getAnnualGross(), f.getCurrency()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal totalNetEur = forecasts.stream()
-                .map(f -> toEur(f.annualNet(), f.currency()))
+                .map(f -> toEur(f.getAnnualNet(), f.getCurrency()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         return new DividendSummary(forecasts, totalGrossEur, totalNetEur);
     }
 
     private DividendForecast forecastOf(Holding holding) {
-        Quote quote = marketDataClient.getQuote(holding.assetTicker());
+        Quote quote = marketDataClient.getQuote(holding.getAssetTicker());
 
-        BigDecimal annualGross = holding.quantity()
-                .multiply(quote.annualDividend())
+        BigDecimal annualGross = holding.getQuantity()
+                .multiply(quote.getAnnualDividend())
                 .setScale(2, RoundingMode.HALF_UP);
 
         BigDecimal grossPerPayment = BigDecimal.ZERO;
-        if (quote.paymentsPerYear() > 0) {
+        if (quote.getPaymentsPerYear() > 0) {
             grossPerPayment = annualGross.divide(
-                    BigDecimal.valueOf(quote.paymentsPerYear()), 2, RoundingMode.HALF_UP);
+                    BigDecimal.valueOf(quote.getPaymentsPerYear()), 2, RoundingMode.HALF_UP);
         }
 
         BigDecimal tax = annualGross.multiply(TAX_RATE).setScale(2, RoundingMode.HALF_UP);
         BigDecimal annualNet = annualGross.subtract(tax);
 
-        return new DividendForecast(holding.assetTicker(), quote.currency(), annualGross,
-                quote.paymentsPerYear(), grossPerPayment, tax, annualNet);
+        return new DividendForecast(holding.getAssetTicker(), quote.getCurrency(), annualGross,
+                quote.getPaymentsPerYear(), grossPerPayment, tax, annualNet);
     }
 
     private BigDecimal toEur(BigDecimal amount, String currency) {
         if (currency.equals("EUR")) {
             return amount;
         }
-        BigDecimal rate = marketDataClient.getQuote("EUR" + currency + "=X").price();
+        BigDecimal rate = marketDataClient.getQuote("EUR" + currency + "=X").getPrice();
         return amount.divide(rate, 2, RoundingMode.HALF_UP);
     }
 }

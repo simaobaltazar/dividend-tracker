@@ -20,7 +20,7 @@ public class AssetService {
 
     public Asset findByTicker(String ticker) {
         return assets.stream()
-                .filter(a -> a.ticker().equals(ticker))
+                .filter(a -> a.getTicker().equals(ticker))
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException(ticker));
     }

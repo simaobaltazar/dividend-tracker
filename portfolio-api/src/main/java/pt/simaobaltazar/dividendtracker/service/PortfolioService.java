@@ -23,11 +23,11 @@ public class PortfolioService {
 
     public List<Holding> portfolio() {
         Map<String, List<Transaction>> byTicker = transactionService.findAll().stream()
-                .collect(Collectors.groupingBy(t -> t.assetTicker()));
+                .collect(Collectors.groupingBy(t -> t.getAssetTicker()));
 
         List<Holding> holdings = byTicker.entrySet().stream()
                 .map(entry -> calculateHolding(entry.getKey(), entry.getValue()))
-                .filter(holding -> holding.quantity().compareTo(BigDecimal.ZERO) > 0)
+                .filter(holding -> holding.getQuantity().compareTo(BigDecimal.ZERO) > 0)
                 .toList();
 
         BigDecimal total = holdings.stream()
@@ -47,20 +47,20 @@ public class PortfolioService {
         BigDecimal finalAveragePrice = BigDecimal.ZERO;
 
         List<Transaction> sorted = transactions.stream()
-                .sorted(Comparator.comparing(t -> t.date()))
+                .sorted(Comparator.comparing(t -> t.getDate()))
                 .toList();
 
         for (Transaction t : sorted) {
 
-            if (t.type() == TransactionType.BUY) {
-                quantity = quantity.add(t.quantity());
-                totalCost = totalCost.add(t.quantity().multiply(t.price()));
+            if (t.getType() == TransactionType.BUY) {
+                quantity = quantity.add(t.getQuantity());
+                totalCost = totalCost.add(t.getQuantity().multiply(t.getPrice()));
             } else {
                 BigDecimal averagePrice = totalCost.divide(quantity, 4, RoundingMode.HALF_UP);
-                BigDecimal profit = t.price().subtract(averagePrice).multiply(t.quantity());
+                BigDecimal profit = t.getPrice().subtract(averagePrice).multiply(t.getQuantity());
                 realizedProfit = realizedProfit.add(profit);
-                quantity = quantity.subtract(t.quantity());
-                totalCost = totalCost.subtract(t.quantity().multiply(averagePrice));
+                quantity = quantity.subtract(t.getQuantity());
+                totalCost = totalCost.subtract(t.getQuantity().multiply(averagePrice));
 
             }
         }
@@ -73,12 +73,12 @@ public class PortfolioService {
     }
 
     private BigDecimal costOf(Holding h) {
-        return h.quantity().multiply(h.averagePrice());
+        return h.getQuantity().multiply(h.getAveragePrice());
     }
 
     private Holding withWeight(Holding h, BigDecimal total) {
         BigDecimal weight = costOf(h).multiply(BigDecimal.valueOf(100)).divide(total, 2, RoundingMode.HALF_UP);
-        return new Holding(h.assetTicker(), h.quantity(), h.averagePrice(),
-                h.realizedProfit(), weight);
+        return new Holding(h.getAssetTicker(), h.getQuantity(), h.getAveragePrice(),
+                h.getRealizedProfit(), weight);
     }
 }
