@@ -26,7 +26,16 @@ public class DividendForecastService {
         List<DividendForecast> forecasts = portfolioService.portfolio().stream()
                 .map(this::forecastOf)
                 .toList();
-        return new DividendSummary(forecasts, BigDecimal.ZERO, BigDecimal.ZERO);
+
+        BigDecimal totalGrossEur = forecasts.stream()
+                .map(f -> toEur(f.annualGross(), f.currency()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalNetEur = forecasts.stream()
+                .map(f -> toEur(f.annualNet(), f.currency()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return new DividendSummary(forecasts, totalGrossEur, totalNetEur);
     }
 
     private DividendForecast forecastOf(Holding holding) {
@@ -47,5 +56,13 @@ public class DividendForecastService {
 
         return new DividendForecast(holding.assetTicker(), quote.currency(), annualGross,
                 quote.paymentsPerYear(), grossPerPayment, tax, annualNet);
+    }
+
+    private BigDecimal toEur(BigDecimal amount, String currency) {
+        if (currency.equals("EUR")) {
+            return amount;
+        }
+        BigDecimal rate = marketDataClient.getQuote("EUR" + currency + "=X").price();
+        return amount.divide(rate, 2, RoundingMode.HALF_UP);
     }
 }
