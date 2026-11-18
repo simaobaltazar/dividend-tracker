@@ -1,43 +1,34 @@
 package pt.simaobaltazar.dividendtracker.service;
 
+import org.springframework.data.domain.Page;          // novo
+import org.springframework.data.domain.PageRequest;   // novo
+import org.springframework.data.domain.Sort;          // novo
 import org.springframework.stereotype.Service;
 import pt.simaobaltazar.dividendtracker.dto.TransactionInput;
 import pt.simaobaltazar.dividendtracker.model.Transaction;
 import pt.simaobaltazar.dividendtracker.model.TransactionPage;
 import pt.simaobaltazar.dividendtracker.model.TransactionType;
+import pt.simaobaltazar.dividendtracker.repository.TransactionRepository;
 import pt.simaobaltazar.dividendtracker.service.exceptions.InvalidRequestException;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class TransactionService {
 
-    private final List<Transaction> transactions = new ArrayList<>(List.of(
-            new Transaction(1L, TransactionType.BUY, new BigDecimal("10"),
-                    new BigDecimal("172.50"), LocalDate.of(2026, 1, 15), "AAPL"),
-            new Transaction(2L, TransactionType.BUY, new BigDecimal("200"),
-                    new BigDecimal("3.85"), LocalDate.of(2026, 2, 3), "EDP.LS"),
-            new Transaction(3L, TransactionType.BUY, new BigDecimal("2.5"),
-                    new BigDecimal("118.20"), LocalDate.of(2026, 3, 10), "VWCE.DE"),
-            new Transaction(4L, TransactionType.SELL, new BigDecimal("4"),
-                    new BigDecimal("190.10"), LocalDate.of(2026, 6, 20), "AAPL")
-    ));
-
-    private final AtomicLong idGenerator = new AtomicLong(4);
-
+    private final TransactionRepository transactionRepository;
     private final AssetService assetService;
 
-    public TransactionService(AssetService assetService) {
+    public TransactionService(TransactionRepository transactionRepository, AssetService assetService) {
+        this.transactionRepository = transactionRepository;
         this.assetService = assetService;
     }
 
     public List<Transaction> findAll() {
-        return transactions;
+        return transactionRepository.findAll();
     }
 
     public Transaction add(TransactionInput input) {
@@ -50,8 +41,7 @@ public class TransactionService {
             throw new InvalidRequestException("Price must be positive");
         }
 
-        LocalDate lastDate = transactions.stream()
-                .filter(t -> t.getAssetTicker().equals(input.getAssetTicker()))
+        LocalDate lastDate = transactionRepository.findByAssetTicker(input.getAssetTicker()).stream()
                 .map(Transaction::getDate)
                 .max(Comparator.naturalOrder())
                 .orElse(LocalDate.MIN);
@@ -66,20 +56,12 @@ public class TransactionService {
             throw new InvalidRequestException("Not enough shares to sell");
         }
 
-        Transaction transaction = new Transaction(
-                idGenerator.incrementAndGet(),
-                input.getType(),
-                input.getQuantity(),
-                input.getPrice(),
-                input.getDate(),
-                input.getAssetTicker()
-        );
-        transactions.add(transaction);
-        return transaction;
+        Transaction transaction = new Transaction(null, input.getType(), input.getQuantity(),
+                input.getPrice(), input.getDate(), input.getAssetTicker());
+        return transactionRepository.save(transaction);
     }
 
     public TransactionPage findPage(int page, int size) {
-
         if (page < 0) {
             throw new InvalidRequestException("Page must be zero or positive");
         }
@@ -87,26 +69,26 @@ public class TransactionService {
             throw new InvalidRequestException("Size must be positive");
         }
 
-        List<Transaction> content = transactions.stream().sorted(Comparator
-                .comparing(Transaction::getDate).reversed()).skip((long) page * size).limit(size).toList();
+        Page<Transaction> result = transactionRepository.findAll(
+                PageRequest.of(page, size, Sort.by("date").descending()));
 
-        int totalElements = transactions.size();
-        int totalPages = (int) Math.ceil((double) totalElements / size);
-
-        return new TransactionPage(content, page, size, totalElements, totalPages);
+        return new TransactionPage(result.getContent(), page, size,
+                (int) result.getTotalElements(), result.getTotalPages());
     }
 
     public boolean delete(Long id) {
-        return transactions.removeIf(t -> t.getId().equals(id));
+
+        if (!transactionRepository.existsById(id)) {
+            return false;
+        }
+        transactionRepository.deleteById(id);
+        return true;
     }
 
     private BigDecimal quantityHeld(String ticker) {
         BigDecimal quantity = BigDecimal.ZERO;
 
-        for (Transaction t : transactions) {
-            if (!t.getAssetTicker().equals(ticker)) {
-                continue;
-            }
+        for (Transaction t : transactionRepository.findByAssetTicker(ticker)) {
             if (t.getType() == TransactionType.BUY) {
                 quantity = quantity.add(t.getQuantity());
             } else {
